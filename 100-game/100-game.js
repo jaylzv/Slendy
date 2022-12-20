@@ -14,11 +14,13 @@ var trFlag = 0; // Translation flag
 var px;
 var py;
 
+var papersFound = 0;
+
 class App extends Application {
 
     async start() {
         this.loader = new GLTFLoader();
-        await this.loader.load('../../common/models/part1/part1.gltf');
+        await this.loader.load('../../common/models/part2/part2.gltf');
 
         this.scene = await this.loader.loadScene(this.loader.defaultScene);
         this.camera = await this.loader.loadNode('Camera');
@@ -39,6 +41,8 @@ class App extends Application {
         this.physics = new Physics(this.scene);
 
         this.slenderman = await this.loader.loadNode('Slenderman');
+
+        this.paper1 = await this.loader.loadNode('Paper1');
     }
 
     //quad.rotateY
@@ -55,6 +59,7 @@ class App extends Application {
         py = this.collider.translation[2];
         // console.log(px + " " + py);
         if (tajm%3 >= 0 && tajm%3 <= 0.001){
+            console.log("x: " + px + " y: " + py);
             // Teleportation
             if (trFlag == 0){
                 var randx = Math.floor(Math.random() * 10);
@@ -88,6 +93,16 @@ class App extends Application {
             // if (px < 0 && py < 0){
             //     this.slenderman.rotation = [1, 0, 0, 0.5];
             // }
+        }
+
+        // Finding the paper
+        // When we find the paper, it goes below the map
+        // Paper1
+        if ((px >= -5.5 && px <= -4.5) && (py <= -28.5 && py >= -29.5) && (this.paper1.translation[1] == 1)){
+            console.log("Najde list!");
+            papersFound += 1;
+            console.log("Papers found: " + papersFound);
+            this.paper1.translation = [-5.5, -5, -28.5];
         }
         
     }
