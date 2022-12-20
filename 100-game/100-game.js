@@ -13,8 +13,16 @@ var trFlag = 0; // Translation flag
 // Player x and y
 var px;
 var py;
+// Slenderman x and y
+var sx;
+var sy;
 
 var papersFound = 0;
+
+// Iskoristeno za slendy koga te love
+var slTime = 0;
+// 1 if caught
+var caught = 0;
 
 class App extends Application {
 
@@ -59,11 +67,16 @@ class App extends Application {
         px = this.collider.translation[0];
         py = this.collider.translation[2];
 
+        sx = this.slenderman.translation[0];
+        sy = this.slenderman.translation[2];
+
         // Slenderman timed teleportation and rotation
         tajm += 0.001;
         
         if (tajm%3 >= 0 && tajm%3 <= 0.001){
             console.log("x: " + px + " y: " + py);
+            // Reset the timer for slenderman catching you when he teleports
+            slTime = 0.01;
             // Teleportation
             if (trFlag == 0){
                 var randx = Math.floor(Math.random() * 10);
@@ -128,6 +141,14 @@ class App extends Application {
             this.paper4.translation = [29.4, -5, -18];
         }
         
+        // Slender catching you
+        if ((px <= sx + 2.5 && px >= sx - 2.5) && (py <= sy + 2.5 && py >= sy - 2.5)){
+            slTime += 0.001;
+            if (slTime%1.4 >= 0 && slTime%1.4 <= 0.001){
+                caught = 1;
+                console.log("Slendy caught you!")
+            }
+        }
     }
 
     render() {
