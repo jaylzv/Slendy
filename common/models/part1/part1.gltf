@@ -137,7 +137,8 @@
                 299,
                 300,
                 301,
-                304
+                304,
+                305
             ]
         }
     ],
@@ -4208,6 +4209,20 @@
                 0,
                 1.2012959718704224,
                 0
+            ]
+        },
+        {
+            "mesh" : 133,
+            "name" : "Paper1",
+            "scale" : [
+                0.26674818992614746,
+                0.26674818992614746,
+                0.26674818992614746
+            ],
+            "translation" : [
+                -5,
+                1.0216162204742432,
+                -28.66320037841797
             ]
         }
     ],
@@ -9186,6 +9201,19 @@
                     "indices" : 686
                 }
             ]
+        },
+        {
+            "name" : "Cube",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 687,
+                        "NORMAL" : 688,
+                        "TEXCOORD_0" : 689
+                    },
+                    "indices" : 686
+                }
+            ]
         }
     ],
     "textures" : [
@@ -9313,22 +9341,6 @@
             "mimeType" : "image/png",
             "name" : "d7aopi7-df760885-8389-49a9-872d-425fee355b4f",
             "uri" : "d7aopi7-df760885-8389-49a9-872d-425fee355b4f.png"
-        }
-    ],
-    "skins" : [
-        {
-            "inverseBindMatrices" : 687,
-            "joints" : [
-                119
-            ],
-            "name" : "Dog_Armature"
-        },
-        {
-            "inverseBindMatrices" : 688,
-            "joints" : [
-                126
-            ],
-            "name" : "Armature"
         }
     ],
     "accessors" : [
@@ -16009,14 +16021,30 @@
         {
             "bufferView" : 687,
             "componentType" : 5126,
-            "count" : 1,
-            "type" : "MAT4"
+            "count" : 24,
+            "max" : [
+                1,
+                1,
+                1
+            ],
+            "min" : [
+                -1,
+                -1,
+                -1
+            ],
+            "type" : "VEC3"
         },
         {
             "bufferView" : 688,
             "componentType" : 5126,
-            "count" : 1,
-            "type" : "MAT4"
+            "count" : 24,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 689,
+            "componentType" : 5126,
+            "count" : 24,
+            "type" : "VEC2"
         }
     ],
     "bufferViews" : [
@@ -20144,13 +20172,21 @@
         },
         {
             "buffer" : 0,
-            "byteLength" : 64,
-            "byteOffset" : 2925464
+            "byteLength" : 288,
+            "byteOffset" : 2925464,
+            "target" : 34962
         },
         {
             "buffer" : 0,
-            "byteLength" : 64,
-            "byteOffset" : 2925528
+            "byteLength" : 288,
+            "byteOffset" : 2925752,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 192,
+            "byteOffset" : 2926040,
+            "target" : 34962
         }
     ],
     "samplers" : [
@@ -20161,7 +20197,7 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 2925592,
+            "byteLength" : 2926232,
             "uri" : "part1.bin"
         }
     ]
