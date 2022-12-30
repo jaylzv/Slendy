@@ -31,25 +31,26 @@ var caught = 0;
 
 // ANIMALS
 // Wolf x and y
+var wolfRunFlag = 0;
+var wolfRunCounter = 0;
 var wolfWay = 0;
 var wx;
 var wy;
 var wz;
 // Fox x and y
+var foxRunFlag = 0;
+var foxRunCounter = 0;
 var foxWay = 0;
 var fx;
 var fy;
 var fz;
 // Horse x and y
+var horseRunFlag = 0;
+var horseRunCounter = 0;
 var horseWay = 0;
 var hx;
 var hy;
 var hz;
-// Fox x and y
-var catWay = 0;
-var cx;
-var cy;
-var cz;
 
 class App extends Application {
 
@@ -91,7 +92,6 @@ class App extends Application {
         this.wolf = await this.loader.loadNode('Wolf');
         this.fox = await this.loader.loadNode('Fox');
         this.horse = await this.loader.loadNode('Horse');
-        this.cat = await this.loader.loadNode('Cat');
     }
 
     // quat.rotateY
@@ -120,10 +120,6 @@ class App extends Application {
         hx = this.horse.translation[0];
         hy = this.horse.translation[2];
         hz = this.horse.translation[1];
-
-        cx = this.cat.translation[0];
-        cy = this.cat.translation[2];
-        cz = this.cat.translation[1];
 
         // Slenderman timed teleportation and rotation
         tajm += 0.001;
@@ -205,53 +201,168 @@ class App extends Application {
             }
         }
 
-        // Animals moving
-        // Wolf moving
-        if (wolfWay == 0){
+        // ANIMALS MOVING
+        // WOLF
+        // Wolf getting scared off
+        if ((px <= wx + 1.5 && px >= wx - 1.5) && (py <= wy + 1.5 && py >= wy - 1.5) && wolfRunFlag == 0){
+            wolfRunFlag = 1;
+        }
+        // If state 0 - neutral
+        // If state 1 run away from the player
+        // If state 2 run to the player
+        if (wolfRunFlag == 1){
+            wolfRunCounter += 0.001;
+            if (wolfWay == 0){
+                this.wolf.translation = [wx - 0.01, wz, wy + 0.01];
+                if (wy >= 15){
+                    wolfWay = 1;
+                }
+            } else if (wolfWay == 1){
+                this.wolf.translation = [wx - 0.01, wz, wy - 0.01];
+                if (wy <= -14){
+                    wolfWay = 0;
+                }
+            }
+            if (wolfRunCounter >= 1){
+                wolfRunFlag = 2;
+            }
+        }
+        if (wolfRunFlag == 2){
+            wolfRunCounter -= 0.001;
+            if (wolfWay == 0){
+                this.wolf.translation = [wx + 0.01, wz, wy + 0.01];
+                if (wy >= 15){
+                    wolfWay = 1;
+                }
+            } else if (wolfWay == 1){
+                this.wolf.translation = [wx + 0.01, wz, wy - 0.01];
+                if (wy <= -14){
+                    wolfWay = 0;
+                }
+            }
+            if (wolfRunCounter <= 0){
+                wolfRunFlag = 0;
+            }
+        }
+        // Wolf moving left and right
+        if (wolfWay == 0 && wolfRunFlag == 0){
             this.wolf.translation = [wx, wz, wy + 0.01];
             if (wy >= 15){
                 wolfWay = 1;
             }
-        } else if (wolfWay == 1){
+        } else if (wolfWay == 1 && wolfRunFlag == 0){
             this.wolf.translation = [wx, wz, wy - 0.01];
             if (wy <= -14){
                 wolfWay = 0;
             }
         }
+
+        // FOX
+        if ((px <= fx + 1.5 && px >= fx - 1.5) && (py <= fy + 1.5 && py >= fy - 1.5) && foxRunFlag == 0){
+            foxRunFlag = 1;
+        }
+        // If state 0 - neutral
+        // If state 1 run away from the player
+        // If state 2 run to the player
+        if (foxRunFlag == 1){
+            foxRunCounter += 0.001;
+            if (foxWay == 0){
+                this.fox.translation = [fx + 0.01, fz, fy - 0.01];
+                if (fx >= 16){
+                    foxWay = 1;
+                }
+            } else if (foxWay == 1){
+                this.fox.translation = [fx - 0.01, fz, fy - 0.01];
+                if (fx <= -2.5){
+                    foxWay = 0;
+                }
+            }
+            if (foxRunCounter >= 1){
+                foxRunFlag = 2;
+            }
+        }
+        if (foxRunFlag == 2){
+            foxRunCounter -= 0.001;
+            if (foxWay == 0){
+                this.fox.translation = [fx + 0.01, fz, fy + 0.01];
+                if (fx >= 16){
+                    foxWay = 1;
+                }
+            } else if (foxWay == 1){
+                this.fox.translation = [fx - 0.01, fz, fy + 0.01];
+                if (fx <= -2.5){
+                    foxWay = 0;
+                }
+            }
+            if (foxRunCounter <= 0){
+                foxRunFlag = 0;
+            }
+        }
         // Fox moving
-        if (foxWay == 0){
+        if (foxWay == 0 && foxRunFlag == 0){
             this.fox.translation = [fx + 0.01, fz, fy];
             if (fx >= 16){
                 foxWay = 1;
             }
-        } else if (foxWay == 1){
+        } else if (foxWay == 1 && foxRunFlag == 0){
             this.fox.translation = [fx - 0.01, fz, fy];
             if (fx <= -2.5){
                 foxWay = 0;
             }
         }
+
+        // HORSE
+        // Horse getting scared off
+        if ((px <= hx + 1.5 && px >= hx - 1.5) && (py <= hy + 1.5 && py >= hy - 1.5) && horseRunFlag == 0){
+            horseRunFlag = 1;
+        }
+        // If state 0 - neutral
+        // If state 1 run away from the player
+        // If state 2 run to the player
+        if (horseRunFlag == 1){
+            horseRunCounter += 0.001;
+            if (horseWay == 0){
+                this.horse.translation = [hx + 0.01, hz, hy - 0.01];
+                if (hy >= 12){
+                    horseWay = 1;
+                }
+            } else if (horseWay == 1){
+                this.horse.translation = [hx + 0.01, hz, hy - 0.01];
+                if (hy <= -14){
+                    horseWay = 0;
+                }
+            }
+            if (horseRunCounter >= 1){
+                horseRunFlag = 2;
+            }
+        }
+        if (horseRunFlag == 2){
+            horseRunCounter -= 0.001;
+            if (horseWay == 0){
+                this.horse.translation = [hx - 0.01, hz, hy + 0.01];
+                if (hy >= 12){
+                    horseWay = 1;
+                }
+            } else if (horseWay == 1){
+                this.horse.translation = [hx - 0.01, hz, hy - 0.01];
+                if (hy <= -14){
+                    horseWay = 0;
+                }
+            }
+            if (horseRunCounter <= 0){
+                horseRunFlag = 0;
+            }
+        }
         // Horse moving
-        if (horseWay == 0){
+        if (horseWay == 0 && horseRunFlag == 0){
             this.horse.translation = [hx, hz, hy + 0.01];
             if (hy >= 12){
                 horseWay = 1;
             }
-        } else if (horseWay == 1){
+        } else if (horseWay == 1 && horseRunFlag == 0){
             this.horse.translation = [hx, hz, hy - 0.01];
             if (hy <= -14){
                 horseWay = 0;
-            }
-        }
-        // Cat moving
-        if (catWay == 0){
-            this.cat.translation = [cx + 0.01, cz, cy];
-            if (cx >= 12){
-                catWay = 1;
-            }
-        } else if (catWay == 1){
-            this.cat.translation = [cx - 0.01, cz, cy];
-            if (cx <= -6){
-                catWay = 0;
             }
         }
     }
