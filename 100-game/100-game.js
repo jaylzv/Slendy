@@ -6,9 +6,14 @@ import { Renderer } from './Renderer.js';
 import { Physics } from './Physics.js';
 import { FirstPersonController } from '../../common/engine/FirstPersonController.js';
 
+import { Node } from '../common/engine/Node.js';
+
+import { quat } from '../lib/gl-matrix-module.js';
+
 // Iskoristeno za teleportiranjeto na slendy sekoi nekolku sekundi
 var tajm = 0;
 var trFlag = 0; // Translation flag
+var rotacija;
 
 // Player x and y
 var px;
@@ -24,6 +29,34 @@ var slTime = 0;
 // 1 if caught
 var caught = 0;
 
+// ANIMALS
+// Wolf x and y
+var wolfRunFlag = 0;
+var wolfRunCounter = 0;
+var wolfWay = 0;
+var wx;
+var wy;
+var wz;
+// Fox x and y
+var foxRunFlag = 0;
+var foxRunCounter = 0;
+var foxWay = 0;
+var fx;
+var fy;
+var fz;
+// Horse x and y
+var horseRunFlag = 0;
+var horseRunCounter = 0;
+var horseWay = 0;
+var hx;
+var hy;
+var hz;
+
+var backgroundSounds = new Audio('../../common/sounds/sbs.mp3');
+var slendyCatching = new Audio('../../common/sounds/slendycatching.mp3');
+var dun = new Audio('../../common/sounds/dun.mp3');
+var scs = 0; // Slendy Catching Counter
+
 class App extends Application {
 
     async start() {
@@ -33,6 +66,12 @@ class App extends Application {
         this.scene = await this.loader.loadScene(this.loader.defaultScene);
         this.camera = await this.loader.loadNode('Camera');
         this.collider = await this.loader.loadNode('Collider');
+        this.light =  await this.loader.loadNode('Light');
+        
+        this.light.rotation = this.camera.rotation;    
+        this.light.intensity = 0.5;
+        this.light.attenuation = [0.001, 0, 0.3];
+        this.light.color = [255, 255, 255];
 
         if (!this.scene || !this.camera) {
             throw new Error('Scene or Camera not present in glTF');
@@ -54,21 +93,41 @@ class App extends Application {
         this.paper2 = await this.loader.loadNode('Paper2');
         this.paper3 = await this.loader.loadNode('Paper3');
         this.paper4 = await this.loader.loadNode('Paper4');
+
+        this.wolf = await this.loader.loadNode('Wolf');
+        this.fox = await this.loader.loadNode('Fox');
+        this.horse = await this.loader.loadNode('Horse');
+
+        this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
+        backgroundSounds.play();
     }
 
-    //quad.rotateY
+    // quat.rotateY
     // pogledaj dokumentacija za quat
     // this.slenderman.rotation = quat.create(quad.rotateY
 
     update(time, dt){
         this.controller.update(dt);
         this.physics.update(dt);
+        this.light.translation = this.collider.translation;
 
         px = this.collider.translation[0];
         py = this.collider.translation[2];
 
         sx = this.slenderman.translation[0];
         sy = this.slenderman.translation[2];
+
+        wx = this.wolf.translation[0];
+        wy = this.wolf.translation[2];
+        wz = this.wolf.translation[1];
+
+        fx = this.fox.translation[0];
+        fy = this.fox.translation[2];
+        fz = this.fox.translation[1];
+
+        hx = this.horse.translation[0];
+        hy = this.horse.translation[2];
+        hz = this.horse.translation[1];
 
         // Slenderman timed teleportation and rotation
         tajm += 0.001;
@@ -77,6 +136,7 @@ class App extends Application {
             console.log("x: " + px + " y: " + py);
             // Reset the timer for slenderman catching you when he teleports
             slTime = 0.01;
+
             // Teleportation
             if (trFlag == 0){
                 var randx = Math.floor(Math.random() * 10);
@@ -106,10 +166,11 @@ class App extends Application {
                 trFlag = Math.floor(Math.random() * 4) + 1;
             }
 
-            // Rotation
-            // if (px < 0 && py < 0){
-            //     this.slenderman.rotation = [1, 0, 0, 0.5];
-            // }
+            this.slenderman.rotation = quat.rotateZ(quat.create(), this.slenderman.rotation, (3*Math.PI)/2);
+
+            dun.play();
+
+            scs = 0;
         }
 
         // Finding the papers
@@ -144,15 +205,202 @@ class App extends Application {
         // Slender catching you
         if ((px <= sx + 2.5 && px >= sx - 2.5) && (py <= sy + 2.5 && py >= sy - 2.5)){
             slTime += 0.001;
-            if (slTime%1.4 >= 0 && slTime%1.4 <= 0.001){
+            if (scs == 0){
+                slendyCatching.play();
+                scs += 0.1;
+            }
+            if (slTime%1 >= 0 && slTime%1 <= 0.001){
                 caught = 1;
                 console.log("Slendy caught you!")
+            }
+        }
+
+        // ANIMALS MOVING
+        // WOLF
+        // Wolf getting scared off
+        if ((px <= wx + 1.5 && px >= wx - 1.5) && (py <= wy + 1.5 && py >= wy - 1.5) && wolfRunFlag == 0){
+            wolfRunFlag = 1;
+        }
+        // If state 0 - neutral
+        // If state 1 run away from the player
+        // If state 2 run to the player
+        if (wolfRunFlag == 1){
+            wolfRunCounter += 0.001;
+            if (wolfWay == 0){
+                this.wolf.translation = [wx - 0.01, wz, wy + 0.01];
+                if (wy >= 15){
+                    wolfWay = 1;
+                    this.wolf.rotation = quat.rotateY(quat.create(), this.wolf.rotation, Math.PI);
+                }
+            } else if (wolfWay == 1){
+                this.wolf.translation = [wx - 0.01, wz, wy - 0.01];
+                if (wy <= -14){
+                    wolfWay = 0;
+                    this.wolf.rotation = quat.rotateY(quat.create(), this.wolf.rotation, Math.PI);
+                }
+            }
+            if (wolfRunCounter >= 1){
+                wolfRunFlag = 2;
+            }
+        }
+        if (wolfRunFlag == 2){
+            wolfRunCounter -= 0.001;
+            if (wolfWay == 0){
+                this.wolf.translation = [wx + 0.01, wz, wy + 0.01];
+                if (wy >= 15){
+                    wolfWay = 1;
+                    this.wolf.rotation = quat.rotateY(quat.create(), this.wolf.rotation, Math.PI);
+                }
+            } else if (wolfWay == 1){
+                this.wolf.translation = [wx + 0.01, wz, wy - 0.01];
+                if (wy <= -14){
+                    wolfWay = 0;
+                    this.wolf.rotation = quat.rotateY(quat.create(), this.wolf.rotation, Math.PI);
+                }
+            }
+            if (wolfRunCounter <= 0){
+                wolfRunFlag = 0;
+            }
+        }
+        // Wolf moving left and right
+        if (wolfWay == 0 && wolfRunFlag == 0){
+            this.wolf.translation = [wx, wz, wy + 0.01];
+            if (wy >= 15){
+                wolfWay = 1;
+                this.wolf.rotation = quat.rotateY(quat.create(), this.wolf.rotation, Math.PI);
+            }
+        } else if (wolfWay == 1 && wolfRunFlag == 0){
+            this.wolf.translation = [wx, wz, wy - 0.01];
+            if (wy <= -14){
+                wolfWay = 0;
+                this.wolf.rotation = quat.rotateY(quat.create(), this.wolf.rotation, Math.PI);
+            }
+        }
+
+        // FOX
+        if ((px <= fx + 1.5 && px >= fx - 1.5) && (py <= fy + 1.5 && py >= fy - 1.5) && foxRunFlag == 0){
+            foxRunFlag = 1;
+        }
+        // If state 0 - neutral
+        // If state 1 run away from the player
+        // If state 2 run to the player
+        if (foxRunFlag == 1){
+            foxRunCounter += 0.001;
+            if (foxWay == 0){
+                this.fox.translation = [fx + 0.01, fz, fy - 0.01];
+                if (fx >= 16){
+                    foxWay = 1;
+                    this.fox.rotation = quat.rotateY(quat.create(), this.fox.rotation, Math.PI);
+                }
+            } else if (foxWay == 1){
+                this.fox.translation = [fx - 0.01, fz, fy - 0.01];
+                if (fx <= -2.5){
+                    foxWay = 0;
+                    this.fox.rotation = quat.rotateY(quat.create(), this.fox.rotation, Math.PI);
+                }
+            }
+            if (foxRunCounter >= 1){
+                foxRunFlag = 2;
+            }
+        }
+        if (foxRunFlag == 2){
+            foxRunCounter -= 0.001;
+            if (foxWay == 0){
+                this.fox.translation = [fx + 0.01, fz, fy + 0.01];
+                if (fx >= 16){
+                    foxWay = 1;
+                    this.fox.rotation = quat.rotateY(quat.create(), this.fox.rotation, Math.PI);
+                }
+            } else if (foxWay == 1){
+                this.fox.translation = [fx - 0.01, fz, fy + 0.01];
+                if (fx <= -2.5){
+                    foxWay = 0;
+                    this.fox.rotation = quat.rotateY(quat.create(), this.fox.rotation, Math.PI);
+                }
+            }
+            if (foxRunCounter <= 0){
+                foxRunFlag = 0;
+            }
+        }
+        // Fox moving
+        if (foxWay == 0 && foxRunFlag == 0){
+            this.fox.translation = [fx + 0.01, fz, fy];
+            if (fx >= 16){
+                foxWay = 1;
+                this.fox.rotation = quat.rotateY(quat.create(), this.fox.rotation, Math.PI);
+            }
+        } else if (foxWay == 1 && foxRunFlag == 0){
+            this.fox.translation = [fx - 0.01, fz, fy];
+            if (fx <= -2.5){
+                foxWay = 0;
+                this.fox.rotation = quat.rotateY(quat.create(), this.fox.rotation, Math.PI);
+            }
+        }
+
+        // HORSE
+        // Horse getting scared off
+        if ((px <= hx + 2.5 && px >= hx - 2.5) && (py <= hy + 2.5 && py >= hy - 2.5) && horseRunFlag == 0){
+            horseRunFlag = 1;
+        }
+        // If state 0 - neutral
+        // If state 1 run away from the player
+        // If state 2 run to the player
+        if (horseRunFlag == 1){
+            horseRunCounter += 0.001;
+            if (horseWay == 0){
+                this.horse.translation = [hx + 0.01, hz, hy + 0.01];
+                if (hy >= 12){
+                    horseWay = 1;
+                    this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
+                }
+            } else if (horseWay == 1){
+                this.horse.translation = [hx + 0.01, hz, hy - 0.01];
+                if (hy <= -14){
+                    horseWay = 0;
+                    this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
+                }
+            }
+            if (horseRunCounter >= 1){
+                horseRunFlag = 2;
+            }
+        }
+        if (horseRunFlag == 2){
+            horseRunCounter -= 0.001;
+            if (horseWay == 0){
+                this.horse.translation = [hx - 0.01, hz, hy + 0.01];
+                if (hy >= 12){
+                    horseWay = 1;
+                    this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
+                }
+            } else if (horseWay == 1){
+                this.horse.translation = [hx - 0.01, hz, hy - 0.01];
+                if (hy <= -14){
+                    horseWay = 0;
+                    this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
+                }
+            }
+            if (horseRunCounter <= 0){
+                horseRunFlag = 0;
+            }
+        }
+        // Horse moving
+        if (horseWay == 0 && horseRunFlag == 0){
+            this.horse.translation = [hx, hz, hy + 0.01];
+            if (hy >= 12){
+                horseWay = 1;
+                this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
+            }
+        } else if (horseWay == 1 && horseRunFlag == 0){
+            this.horse.translation = [hx, hz, hy - 0.01];
+            if (hy <= -14){
+                horseWay = 0;
+                this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
             }
         }
     }
 
     render() {
-        this.renderer.render(this.scene, this.camera);
+        this.renderer.render(this.scene, this.camera, this.light);
     }
 
     resize(width, height) {
