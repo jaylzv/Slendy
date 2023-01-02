@@ -52,6 +52,11 @@ var hx;
 var hy;
 var hz;
 
+var backgroundSounds = new Audio('../../common/sounds/sbs.mp3');
+var slendyCatching = new Audio('../../common/sounds/slendycatching.mp3');
+var dun = new Audio('../../common/sounds/dun.mp3');
+var scs = 0; // Slendy Catching Counter
+
 class App extends Application {
 
     async start() {
@@ -92,6 +97,9 @@ class App extends Application {
         this.wolf = await this.loader.loadNode('Wolf');
         this.fox = await this.loader.loadNode('Fox');
         this.horse = await this.loader.loadNode('Horse');
+
+        this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
+        backgroundSounds.play();
     }
 
     // quat.rotateY
@@ -128,6 +136,7 @@ class App extends Application {
             console.log("x: " + px + " y: " + py);
             // Reset the timer for slenderman catching you when he teleports
             slTime = 0.01;
+
             // Teleportation
             if (trFlag == 0){
                 var randx = Math.floor(Math.random() * 10);
@@ -157,10 +166,11 @@ class App extends Application {
                 trFlag = Math.floor(Math.random() * 4) + 1;
             }
 
-            // Rotation
-            // if (px < 0 && py < 0){
-            //     this.slenderman.rotation = [1, 0, 0, 0.5];
-            // }
+            this.slenderman.rotation = quat.rotateZ(quat.create(), this.slenderman.rotation, (3*Math.PI)/2);
+
+            dun.play();
+
+            scs = 0;
         }
 
         // Finding the papers
@@ -195,7 +205,11 @@ class App extends Application {
         // Slender catching you
         if ((px <= sx + 2.5 && px >= sx - 2.5) && (py <= sy + 2.5 && py >= sy - 2.5)){
             slTime += 0.001;
-            if (slTime%1.4 >= 0 && slTime%1.4 <= 0.001){
+            if (scs == 0){
+                slendyCatching.play();
+                scs += 0.1;
+            }
+            if (slTime%1 >= 0 && slTime%1 <= 0.001){
                 caught = 1;
                 console.log("Slendy caught you!")
             }
@@ -216,11 +230,13 @@ class App extends Application {
                 this.wolf.translation = [wx - 0.01, wz, wy + 0.01];
                 if (wy >= 15){
                     wolfWay = 1;
+                    this.wolf.rotation = quat.rotateY(quat.create(), this.wolf.rotation, Math.PI);
                 }
             } else if (wolfWay == 1){
                 this.wolf.translation = [wx - 0.01, wz, wy - 0.01];
                 if (wy <= -14){
                     wolfWay = 0;
+                    this.wolf.rotation = quat.rotateY(quat.create(), this.wolf.rotation, Math.PI);
                 }
             }
             if (wolfRunCounter >= 1){
@@ -233,11 +249,13 @@ class App extends Application {
                 this.wolf.translation = [wx + 0.01, wz, wy + 0.01];
                 if (wy >= 15){
                     wolfWay = 1;
+                    this.wolf.rotation = quat.rotateY(quat.create(), this.wolf.rotation, Math.PI);
                 }
             } else if (wolfWay == 1){
                 this.wolf.translation = [wx + 0.01, wz, wy - 0.01];
                 if (wy <= -14){
                     wolfWay = 0;
+                    this.wolf.rotation = quat.rotateY(quat.create(), this.wolf.rotation, Math.PI);
                 }
             }
             if (wolfRunCounter <= 0){
@@ -249,11 +267,13 @@ class App extends Application {
             this.wolf.translation = [wx, wz, wy + 0.01];
             if (wy >= 15){
                 wolfWay = 1;
+                this.wolf.rotation = quat.rotateY(quat.create(), this.wolf.rotation, Math.PI);
             }
         } else if (wolfWay == 1 && wolfRunFlag == 0){
             this.wolf.translation = [wx, wz, wy - 0.01];
             if (wy <= -14){
                 wolfWay = 0;
+                this.wolf.rotation = quat.rotateY(quat.create(), this.wolf.rotation, Math.PI);
             }
         }
 
@@ -270,11 +290,13 @@ class App extends Application {
                 this.fox.translation = [fx + 0.01, fz, fy - 0.01];
                 if (fx >= 16){
                     foxWay = 1;
+                    this.fox.rotation = quat.rotateY(quat.create(), this.fox.rotation, Math.PI);
                 }
             } else if (foxWay == 1){
                 this.fox.translation = [fx - 0.01, fz, fy - 0.01];
                 if (fx <= -2.5){
                     foxWay = 0;
+                    this.fox.rotation = quat.rotateY(quat.create(), this.fox.rotation, Math.PI);
                 }
             }
             if (foxRunCounter >= 1){
@@ -287,11 +309,13 @@ class App extends Application {
                 this.fox.translation = [fx + 0.01, fz, fy + 0.01];
                 if (fx >= 16){
                     foxWay = 1;
+                    this.fox.rotation = quat.rotateY(quat.create(), this.fox.rotation, Math.PI);
                 }
             } else if (foxWay == 1){
                 this.fox.translation = [fx - 0.01, fz, fy + 0.01];
                 if (fx <= -2.5){
                     foxWay = 0;
+                    this.fox.rotation = quat.rotateY(quat.create(), this.fox.rotation, Math.PI);
                 }
             }
             if (foxRunCounter <= 0){
@@ -303,17 +327,19 @@ class App extends Application {
             this.fox.translation = [fx + 0.01, fz, fy];
             if (fx >= 16){
                 foxWay = 1;
+                this.fox.rotation = quat.rotateY(quat.create(), this.fox.rotation, Math.PI);
             }
         } else if (foxWay == 1 && foxRunFlag == 0){
             this.fox.translation = [fx - 0.01, fz, fy];
             if (fx <= -2.5){
                 foxWay = 0;
+                this.fox.rotation = quat.rotateY(quat.create(), this.fox.rotation, Math.PI);
             }
         }
 
         // HORSE
         // Horse getting scared off
-        if ((px <= hx + 1.5 && px >= hx - 1.5) && (py <= hy + 1.5 && py >= hy - 1.5) && horseRunFlag == 0){
+        if ((px <= hx + 2.5 && px >= hx - 2.5) && (py <= hy + 2.5 && py >= hy - 2.5) && horseRunFlag == 0){
             horseRunFlag = 1;
         }
         // If state 0 - neutral
@@ -322,14 +348,16 @@ class App extends Application {
         if (horseRunFlag == 1){
             horseRunCounter += 0.001;
             if (horseWay == 0){
-                this.horse.translation = [hx + 0.01, hz, hy - 0.01];
+                this.horse.translation = [hx + 0.01, hz, hy + 0.01];
                 if (hy >= 12){
                     horseWay = 1;
+                    this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
                 }
             } else if (horseWay == 1){
                 this.horse.translation = [hx + 0.01, hz, hy - 0.01];
                 if (hy <= -14){
                     horseWay = 0;
+                    this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
                 }
             }
             if (horseRunCounter >= 1){
@@ -342,11 +370,13 @@ class App extends Application {
                 this.horse.translation = [hx - 0.01, hz, hy + 0.01];
                 if (hy >= 12){
                     horseWay = 1;
+                    this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
                 }
             } else if (horseWay == 1){
                 this.horse.translation = [hx - 0.01, hz, hy - 0.01];
                 if (hy <= -14){
                     horseWay = 0;
+                    this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
                 }
             }
             if (horseRunCounter <= 0){
@@ -358,11 +388,13 @@ class App extends Application {
             this.horse.translation = [hx, hz, hy + 0.01];
             if (hy >= 12){
                 horseWay = 1;
+                this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
             }
         } else if (horseWay == 1 && horseRunFlag == 0){
             this.horse.translation = [hx, hz, hy - 0.01];
             if (hy <= -14){
                 horseWay = 0;
+                this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
             }
         }
     }
