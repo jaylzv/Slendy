@@ -1,8 +1,9 @@
-import { mat4 } from '../../lib/gl-matrix-module.js';
+import { quat, vec3, mat4 } from '../../lib/gl-matrix-module.js';
 
 import { WebGL } from '../../common/engine/WebGL.js';
 
 import { shaders } from './shaders.js';
+
 
 // This class prepares all assets for use with WebGL
 // and takes care of rendering.
@@ -186,7 +187,11 @@ export class Renderer {
         return vpMatrix;
     }
 
-    render(scene, camera) {
+    // Nastavit parametre luchi
+    // Barvo luchi, intenziteto, intenuianton
+    // Nastavitev view in projection matrike
+    // Problem je uniform, imeti pravi atribute
+    render(scene, camera, light) {
         const gl = this.gl;
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -195,32 +200,55 @@ export class Renderer {
         gl.useProgram(program);
 
         const mvpMatrix = this.getViewProjectionMatrix(camera);
+
+        const viewMatrix = camera.globalMatrix;
+        mat4.invert(viewMatrix, viewMatrix);
+        gl.uniformMatrix4fv(uniforms.uViewMatrix, false, viewMatrix)
+
+        gl.uniformMatrix4fv(uniforms.uProjectionMatrix, false, camera.camera.projectionMatrix);
+        gl.uniform3fv(uniforms.uCameraPosition, mat4.getTranslation(vec3.create(), camera.globalMatrix));
+
+        gl.uniform3fv(uniforms.uLight.position, mat4.getTranslation(vec3.create(), light.globalMatrix));
+        gl.uniform3fv(uniforms.uLight.color, vec3.scale(vec3.create(), light.color, light.intensity / 255));
+        gl.uniform3fv(uniforms.uLight.attenuation, light.attenuation);
+
+        const lightDirection = vec3.transformQuat(vec3.create(), [0, 0, 1], mat4.getRotation(quat.create(), camera.globalMatrix));
+        gl.uniform3fv(uniforms.uLight.direction, lightDirection);
+        gl.uniform1f(uniforms.uLight.limitMax, Math.cos(Math.PI / 3));
+        gl.uniform1f(uniforms.uLight.limitMin, Math.cos(0));
+        //console.log(lightDirection);
+
+
+
         for (const node of scene.nodes) {
-            this.renderNode(node, mvpMatrix);
+            this.renderNode(node, mat4.create());
         }
     }
 
-    renderNode(node, mvpMatrix) {
+    // Nastavitev modelMatrike
+    renderNode(node, modelMatrix) {
         const gl = this.gl;
 
         const { program, uniforms } = this.programs.simple;
 
-        mvpMatrix = mat4.clone(mvpMatrix);
-        mat4.mul(mvpMatrix, mvpMatrix, node.localMatrix);
+        modelMatrix = mat4.clone(modelMatrix);
+        mat4.mul(modelMatrix, modelMatrix, node.localMatrix);
 
         if (node.mesh) {
-            gl.uniformMatrix4fv(uniforms.uModelViewProjection, false, mvpMatrix);
+            gl.uniformMatrix4fv(uniforms.uModelMatrix, false, modelMatrix);
             for (const primitive of node.mesh.primitives) {
                 this.renderPrimitive(primitive);
             }
         }
 
         for (const child of node.children) {
-            this.renderNode(child, mvpMatrix);
+            this.renderNode(child, modelMatrix);
         }
     }
 
     // Popravi go via del
+    // Shinnines bo trebal nastavat: 1/materialRoughness
+
     renderPrimitive(primitive) {
         const gl = this.gl;
 
@@ -242,6 +270,9 @@ export class Renderer {
         const glSampler = texture
                         ? this.glObjects.get(texture.sampler)
                         : this.defaultSampler;
+
+        //gl.uniform1f(uniforms.uMaterial.shininess, 1 / material.roughnessFactor);  
+        //console.log(material.baseColorFactor);                      
 
         gl.bindTexture(gl.TEXTURE_2D, glTexture);
         gl.bindSampler(0, glSampler);

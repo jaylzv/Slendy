@@ -39,6 +39,17 @@ a.back {
     color: #000;
 }
 
+a.papers{
+    display: block;
+    margin: 20px;
+    padding: 5px 10px;
+    background: #fff;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    text-decoration: solid;
+    color: rgb(240, 45, 45);
+}
+
 a.back:hover {
     background: #ddd;
 }
