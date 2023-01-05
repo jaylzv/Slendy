@@ -6,9 +6,9 @@ import { Renderer } from './Renderer.js';
 import { Physics } from './Physics.js';
 import { FirstPersonController } from '../../common/engine/FirstPersonController.js';
 
-import { Node } from '../common/engine/Node.js';
-
 import { quat } from '../lib/gl-matrix-module.js';
+
+import { Node } from '../common/engine/Node.js';
 
 // Iskoristeno za teleportiranjeto na slendy sekoi nekolku sekundi
 var tajm = 0;
@@ -18,9 +18,15 @@ var rotacija;
 // Player x and y
 var px;
 var py;
+var pz;
 // Slenderman x and y
 var sx;
 var sy;
+var sz;
+
+var atan2X;
+var atan2Y;
+var atan2Angle;
 
 var papersFound = 0;
 
@@ -61,15 +67,15 @@ class App extends Application {
 
     async start() {
         this.loader = new GLTFLoader();
-        await this.loader.load('../../common/models/part2/part2.gltf');
+        await this.loader.load('../../common/models/part1/part1.gltf');
 
         this.scene = await this.loader.loadScene(this.loader.defaultScene);
         this.camera = await this.loader.loadNode('Camera');
         this.collider = await this.loader.loadNode('Collider');
         this.light =  await this.loader.loadNode('Light');
+        this.sky = await this.loader.loadNode('Sky');
         
-        this.light.rotation = this.camera.rotation;    
-        this.light.intensity = 0.5;
+        this.light.intensity = 2;
         this.light.attenuation = [0.001, 0, 0.3];
         this.light.color = [255, 255, 255];
 
@@ -102,21 +108,19 @@ class App extends Application {
         backgroundSounds.play();
     }
 
-    // quat.rotateY
-    // pogledaj dokumentacija za quat
-    // this.slenderman.rotation = quat.create(quad.rotateY
-
     update(time, dt){
         this.controller.update(dt);
         this.physics.update(dt);
-        this.light.translation = this.collider.translation;
+        
 
         px = this.collider.translation[0];
         py = this.collider.translation[2];
+        pz = this.collider.translation[1];
 
         sx = this.slenderman.translation[0];
         sy = this.slenderman.translation[2];
-
+        sz = this.slenderman.translation[1];
+        
         wx = this.wolf.translation[0];
         wy = this.wolf.translation[2];
         wz = this.wolf.translation[1];
@@ -131,12 +135,15 @@ class App extends Application {
 
         // Slenderman timed teleportation and rotation
         tajm += 0.001;
+
+        console.log("x: " + px + " y: " + py);
+
+        atan2Angle = Math.atan2(py - sy, px - sx);
+        this.slenderman.rotation = quat.setAxisAngle(quat.create(), [0, -1 , 0], atan2Angle);
         
         if (tajm%3 >= 0 && tajm%3 <= 0.001){
-            console.log("x: " + px + " y: " + py);
             // Reset the timer for slenderman catching you when he teleports
             slTime = 0.01;
-
             // Teleportation
             if (trFlag == 0){
                 var randx = Math.floor(Math.random() * 10);
@@ -166,8 +173,6 @@ class App extends Application {
                 trFlag = Math.floor(Math.random() * 4) + 1;
             }
 
-            this.slenderman.rotation = quat.rotateZ(quat.create(), this.slenderman.rotation, (3*Math.PI)/2);
-
             dun.play();
 
             scs = 0;
@@ -175,47 +180,51 @@ class App extends Application {
 
         // Finding the papers
         // When we find the paper, it goes below the map
-        // Paper1
-        if ((px >= -5.5 && px <= -4.5) && (py <= -28.5 && py >= -29.5) && (this.paper1.translation[1] == 1)){
-            console.log("Found the first paper!");
-            papersFound += 1;
-            console.log("Papers found: " + papersFound);
-            this.paper1.translation = [-5.5, -5, -28.5];
-        }
-        // Paper2
-        if ((px >= -29.6 && px <= -28.5) && (py <= 5.5 && py >= 4.5) && (this.paper2.translation[1] == 1)){
-            console.log("Found the second paper!");
-            papersFound += 1;
-            console.log("Papers found: " + papersFound);
-            this.paper2.translation = [-29, -5, 5];
-        }
-        if ((px <= 25 && px >= 24) && (py >= 18.6 && py <= 19) && (this.paper3.translation[1] == 1)){
+        if ((px <= 25 && px >= 24) && (py >= 18.6 && py <= 19) && (this.paper1.translation[1] == 1)){
             console.log("Found the third paper!");
             papersFound += 1;
             console.log("Papers found: " + papersFound);
-            this.paper3.translation = [24.5, -5, 19];
+            this.paper1.translation = [24.5, -5, 19];
+            document.getElementById("Papers").innerText = "Papers found: " + papersFound + "/4";
         }
-        if ((px >= 29.2 && px <= 29.8) && (py >= -18.5 && py <= -17.5) && (this.paper4.translation[1] == 1)){
+        if ((px >= 3.5 && px <= 5) && (py >= 2.2 && py <= 3.8) && (this.paper2.translation[1] == 1)){
+            console.log("Found the second paper!");
+            papersFound += 1;
+            console.log("Papers found: " + papersFound);
+            this.paper2.translation = [4, -5, 3];
+            document.getElementById("Papers").innerText = "Papers found: " + papersFound + "/4";
+        }
+        if ((px >= 29 && px <= 30.5) && (py <= -17 && py >= -19) && (this.paper3.translation[1] == 1)){
+            console.log("Found the third paper!");
+            papersFound += 1;
+            console.log("Papers found: " + papersFound);
+            this.paper3.translation = [30, -5, 5];
+            document.getElementById("Papers").innerText = "Papers found: " + papersFound + "/4";
+        }
+        if ((px >= -5.5 && px <= -4.5) && (py <= -28.5 && py >= -29.5) && (this.paper4.translation[1] == 1)){
             console.log("Found the fourth paper!");
             papersFound += 1;
             console.log("Papers found: " + papersFound);
-            this.paper4.translation = [29.4, -5, -18];
+            this.paper4.translation = [-5.5, -5, -28.5];
+            document.getElementById("Papers").innerText = "Papers found: " + papersFound + "/4";
         }
         
         // Slender catching you
-        if ((px <= sx + 2.5 && px >= sx - 2.5) && (py <= sy + 2.5 && py >= sy - 2.5)){
+        if ((px <= sx + 4 && px >= sx - 4) && (py <= sy + 4 && py >= sy - 4)){
             slTime += 0.001;
+
             if (scs == 0){
                 slendyCatching.play();
                 scs += 0.1;
             }
+
             if (slTime%1 >= 0 && slTime%1 <= 0.001){
                 caught = 1;
                 console.log("Slendy caught you!")
             }
         }
 
-        // ANIMALS MOVING
+         // ANIMALS MOVING
         // WOLF
         // Wolf getting scared off
         if ((px <= wx + 1.5 && px >= wx - 1.5) && (py <= wy + 1.5 && py >= wy - 1.5) && wolfRunFlag == 0){
@@ -396,6 +405,17 @@ class App extends Application {
                 horseWay = 0;
                 this.horse.rotation = quat.rotateY(quat.create(), this.horse.rotation, Math.PI);
             }
+        }
+
+
+        this.sky.translation = [px, 9.58256, py];
+        this.sky.translation = [px, 9.58256, py];
+
+        if(papersFound === 4){
+            window.location.href = "win.html";
+        }
+        if(caught === 1){
+            window.location.href = "lose.html";
         }
     }
 

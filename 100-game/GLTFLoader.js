@@ -322,6 +322,8 @@ export class GLTFLoader {
             options.mesh = await this.loadMesh(gltfSpec.mesh);
         }
 
+        
+
         const node = new Node(options);
         this.cache.set(gltfSpec, node);
         return node;

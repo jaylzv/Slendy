@@ -1,9 +1,15 @@
 body {
-    margin: 10px;
+    margin-left: 870px;
+    margin-top: 400px;
+}
+
+div{
+    margin-bottom: 10px;
+    margin-left: 50px;
 }
 
 ul {
-    padding-left: 10px;
+    padding-left: 1000px;
 }
 
 li {
@@ -13,7 +19,7 @@ li {
 }
 
 a {
-    color: black;
+    color: rgb(163, 65, 65);
     text-decoration: none;
     padding: 5px;
 }
